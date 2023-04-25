@@ -81,7 +81,7 @@ using SnoopPrecompile
 # This caused freezes on early 1.8 patch versions,
 # see https://github.com/SciML/DiffEqFlux.jl/issues/783
 @static if VERSION < v"1.8" || VERSION >= v"1.8.5"
-  @precompile_all_calls precompile()
+  # @precompile_all_calls precompile()
 end
 
 end # module

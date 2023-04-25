@@ -16,9 +16,10 @@ If it does not, then the second argument is a list of edges to attach to the Cod
 such that if a suitable rule is defined later, the generated function will recompile.
 """
 function has_chain_rrule(T)
-  config_T, arg_Ts = Iterators.peel(T.parameters)
-  configured_rrule_m = meta(Tuple{typeof(rrule), config_T, arg_Ts...})
+  @show config_T, arg_Ts = Iterators.peel(T.parameters)
+  @show configured_rrule_m = meta(Tuple{typeof(rrule), config_T, arg_Ts...})
   is_ambig = configured_rrule_m === nothing  # this means there was an ambiguity error, on configured_rrule
+  @show is_ambig _is_rrule_redispatcher(configured_rrule_m.method)
 
 
   if !is_ambig && _is_rrule_redispatcher(configured_rrule_m.method)
@@ -43,7 +44,7 @@ function has_chain_rrule(T)
   # - for every method in `no_rrule` there is a identical one in `rrule` that returns nothing
   # - this includes the general fallback `rrule(::Any...)=nothing`.
   # - a configured rrule/no_rrule is always more specific than a otherwise equivalent unconfigured rrule/no_rrule
-  #  
+  #
   # Consider the following truth table, for what can occur:
   # rrule: fallback, no_rrule: fallback =>  matches => do not use rrule.
   # rrule: specific, no_rrule: fallback => !matches => do use rrule, as haven't opted out.
@@ -55,9 +56,9 @@ function has_chain_rrule(T)
   # Note that the fallback cases are the same outcome as the general cases as fallback is just most general.
   # It can be seen that checking if it matches is the correct way to decide if we should use the rrule or not.
 
-
+  @show no_rrule_m rrule_m
   if !is_ambig && matching_cr_sig(no_rrule_m, rrule_m)  # Not ambiguous, and opted-out.
-    # Return instance for configured_rrule_m as that will be invalidated 
+    # Return instance for configured_rrule_m as that will be invalidated
     # directly if configured rule added, or indirectly if unconfigured rule added
     # Do not need an edge for `no_rrule` as no addition of methods to that can cause this
     # decision to need to be revisited (only changes to `rrule`), since we are already not
@@ -65,7 +66,7 @@ function has_chain_rrule(T)
     return false, configured_rrule_m.instance
   else
     # Either is ambiguous, and we should try to use it, and then error
-    # or we are uses a rrule, no need to add any edges for `rrule`, as it will generate 
+    # or we are uses a rrule, no need to add any edges for `rrule`, as it will generate
     # code with natural edges if a new method is defined there.
     # We also do not need an edge to `no_rrule`, as any time a method is added to `no_rrule`
     # a corresponding method is added to `rrule` (to return `nothing`), thus we will already
@@ -165,7 +166,7 @@ end
 @inline wrap_chainrules_input(dxs::AbstractArray) = map(wrap_chainrules_input, dxs)
 
 #=
-# Could `reinterpret` instead here? See issue 1112. 
+# Could `reinterpret` instead here? See issue 1112.
 # One easy case, might be this:
 @inline wrap_chainrules_input(xs::Base.ReinterpretArray{<:NamedTuple, <:Tangent}) = parent(xs)
 
